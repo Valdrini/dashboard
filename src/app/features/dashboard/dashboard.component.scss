@@ -1,0 +1,184 @@
+.dashboard-container {
+  padding: 2rem 0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+  
+  .dashboard-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+  }
+  
+  .dashboard-subtitle {
+    font-size: 1rem;
+    color: #6c757d;
+    margin: 0;
+  }
+}
+
+// Stat Cards
+.stat-card {
+  background: white;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 100%;
+  
+  &:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+  }
+  
+  &-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    flex-shrink: 0;
+  }
+  
+  &-primary {
+    .stat-card-icon {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+  }
+  
+  &-info {
+    .stat-card-icon {
+      background: linear-gradient(135deg, #0dcaf0 0%, #06bbcc 100%);
+      color: white;
+    }
+  }
+  
+  &-success {
+    .stat-card-icon {
+      background: linear-gradient(135deg, #51cf66 0%, #198754 100%);
+      color: white;
+    }
+  }
+  
+  &-warning {
+    .stat-card-icon {
+      background: linear-gradient(135deg, #ffd43b 0%, #ffc107 100%);
+      color: #664d03;
+    }
+  }
+  
+  &-content {
+    flex: 1;
+  }
+  
+  &-title {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+  
+  &-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+  }
+  
+  &-trend {
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+}
+
+// Cards
+.card {
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: var(--shadow-lg) !important;
+  }
+}
+
+.card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+}
+
+// Tables
+.table {
+  font-size: 0.9rem;
+  
+  thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.25rem;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  tbody td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+  }
+}
+
+// Badges
+.badge {
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem 0;
+  }
+  
+  .dashboard-header {
+    .dashboard-title {
+      font-size: 1.5rem;
+    }
+    
+    .dashboard-subtitle {
+      font-size: 0.875rem;
+    }
+  }
+  
+  .stat-card {
+    padding: 1rem;
+    
+    &-icon {
+      width: 50px;
+      height: 50px;
+      font-size: 1.5rem;
+    }
+    
+    &-value {
+      font-size: 1.5rem;
+    }
+  }
+}

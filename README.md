@@ -1,6 +1,15 @@
-# AnchorzupDashboardV1
+# Anchorzup Dashboard
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.5.
+A beautiful, modern dashboard application built with Angular 18 and Bootstrap 5.
+
+## Features
+
+- **Modern UI Design**: Clean, professional interface with gradient accents and smooth transitions
+- **Dashboard Overview**: Interactive statistics cards showing key business metrics
+- **Data Visualization**: Comprehensive tables for user activity, engagement, and product performance
+- **Responsive Layout**: Fully responsive design that works on all devices
+- **Sticky Header**: Navigation header stays visible while scrolling
+- **Side Navigation**: Clean sidebar navigation with active state highlighting
 
 ## Development server
 

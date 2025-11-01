@@ -1,0 +1,30 @@
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: white !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  min-height: 64px;
+  
+  .angular-logo {
+    max-width: 150px;
+    height: auto;
+  }
+  
+  .fw-semibold {
+    font-size: 1.25rem;
+    color: #1a1a1a;
+  }
+  
+  .btn-primary {
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    }
+  }
+}

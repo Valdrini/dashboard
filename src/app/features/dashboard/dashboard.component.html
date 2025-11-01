@@ -1,0 +1,187 @@
+<div class="dashboard-container">
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Dashboard Overview</h1>
+    <p class="dashboard-subtitle">Welcome back! Here's what's happening with your business today.</p>
+  </div>
+
+  <!-- Summary Stats Cards -->
+  <div class="row g-4 mb-4">
+    <!-- Total Revenue Card -->
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="stat-card stat-card-primary">
+        <div class="stat-card-icon">
+          <i class="bi bi-currency-dollar"></i>
+        </div>
+        <div class="stat-card-content">
+          <h3 class="stat-card-title">Total Revenue</h3>
+          <p class="stat-card-value">${{ getTotalRevenue() | number:'1.0-0' }}</p>
+          <span class="stat-card-trend text-success">
+            <i class="bi bi-arrow-up-circle"></i> +15%
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Users Card -->
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="stat-card stat-card-info">
+        <div class="stat-card-icon">
+          <i class="bi bi-people"></i>
+        </div>
+        <div class="stat-card-content">
+          <h3 class="stat-card-title">Active Users</h3>
+          <p class="stat-card-value">{{ getTotalUsers() | number }}</p>
+          <span class="stat-card-trend text-success">
+            <i class="bi bi-arrow-up-circle"></i> +8%
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Sessions Card -->
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="stat-card stat-card-success">
+        <div class="stat-card-icon">
+          <i class="bi bi-graph-up"></i>
+        </div>
+        <div class="stat-card-content">
+          <h3 class="stat-card-title">Sessions</h3>
+          <p class="stat-card-value">{{ getTotalSessions() | number }}</p>
+          <span class="stat-card-trend text-success">
+            <i class="bi bi-arrow-up-circle"></i> +12%
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Average Session Duration Card -->
+    <div class="col-12 col-md-6 col-lg-3">
+      <div class="stat-card stat-card-warning">
+        <div class="stat-card-icon">
+          <i class="bi bi-clock-history"></i>
+        </div>
+        <div class="stat-card-content">
+          <h3 class="stat-card-title">Avg. Session</h3>
+          <p class="stat-card-value">{{ getAvgSessionDuration() }} min</p>
+          <span class="stat-card-trend text-danger">
+            <i class="bi bi-arrow-down-circle"></i> -3%
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Tables Section -->
+  <div class="row g-4">
+    <!-- User Activity Table -->
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+          <h5 class="mb-0 fw-semibold">
+            <i class="bi bi-calendar3 me-2"></i>User Activity
+          </h5>
+          <span class="badge bg-primary">{{ activity.length }} days</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Date</th>
+                  <th class="text-end">Active Users</th>
+                  <th class="text-end">New Users</th>
+                  <th class="text-end">Sessions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let r of activity">
+                  <td class="fw-medium">{{ r.date }}</td>
+                  <td class="text-end">{{ r.activeUsers | number }}</td>
+                  <td class="text-end">
+                    <span class="badge bg-success-subtle text-success">{{ r.newUsers | number }}</span>
+                  </td>
+                  <td class="text-end">{{ r.sessions | number }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Engagement Table -->
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+          <h5 class="mb-0 fw-semibold">
+            <i class="bi bi-bar-chart me-2"></i>Engagement by Platform
+          </h5>
+          <span class="badge bg-info">{{ engagement.length }} platforms</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Platform</th>
+                  <th class="text-end">Page Views</th>
+                  <th class="text-end">Avg. Session</th>
+                  <th class="text-end">Bounce Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let r of engagement">
+                  <td class="fw-medium">
+                    <span class="badge bg-primary-subtle">{{ r.platform }}</span>
+                  </td>
+                  <td class="text-end">{{ r.pageViews | number }}</td>
+                  <td class="text-end">{{ r.avgSessionDuration }} min</td>
+                  <td class="text-end">
+                    <span class="badge" [ngClass]="getBounceRateClass(r.bounceRate)">{{ r.bounceRate }}%</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Products Table -->
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+          <h5 class="mb-0 fw-semibold">
+            <i class="bi bi-box-seam me-2"></i>Top Products Performance
+          </h5>
+          <span class="badge bg-success">{{ products.length }} products</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Product</th>
+                  <th class="text-end">Sales</th>
+                  <th class="text-end">Revenue</th>
+                  <th class="text-end">Revenue per Sale</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let r of products">
+                  <td class="fw-medium">{{ r.product }}</td>
+                  <td class="text-end">
+                    <span class="badge bg-info-subtle text-info">{{ r.sales | number }}</span>
+                  </td>
+                  <td class="text-end fw-semibold">${{ r.revenue | number }}</td>
+                  <td class="text-end">${{ (r.revenue / r.sales) | number:'1.0-0' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
