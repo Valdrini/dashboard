@@ -20,6 +20,16 @@ export class DashboardDataService {
       { date: '2025-06-03', activeUsers: 600, newUsers: 150, sessions: 980 },
       { date: '2025-06-04', activeUsers: 640, newUsers: 165, sessions: 1050 },
       { date: '2025-06-05', activeUsers: 690, newUsers: 180, sessions: 1120 },
+      { date: '2025-06-06', activeUsers: 720, newUsers: 195, sessions: 1180 },
+      { date: '2025-06-07', activeUsers: 750, newUsers: 210, sessions: 1250 },
+      { date: '2025-06-08', activeUsers: 680, newUsers: 190, sessions: 1150 },
+      { date: '2025-06-09', activeUsers: 710, newUsers: 200, sessions: 1200 },
+      { date: '2025-06-10', activeUsers: 740, newUsers: 215, sessions: 1280 },
+      { date: '2025-06-11', activeUsers: 680, newUsers: 185, sessions: 1130 },
+      { date: '2025-06-12', activeUsers: 760, newUsers: 220, sessions: 1320 },
+      { date: '2025-06-13', activeUsers: 790, newUsers: 240, sessions: 1400 },
+      { date: '2025-06-14', activeUsers: 720, newUsers: 210, sessions: 1220 },
+      { date: '2025-06-15', activeUsers: 770, newUsers: 230, sessions: 1350 },
     ],
     engagement: [
       {

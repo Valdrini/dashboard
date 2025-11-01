@@ -1,6 +1,16 @@
 nav {
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
   
+  &.sidenav-fixed {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    height: calc(100vh - 64px);
+    width: 240px;
+    overflow-y: auto;
+    z-index: 100;
+  }
+  
   .nav-link {
     color: #6c757d;
     border-radius: 8px;
