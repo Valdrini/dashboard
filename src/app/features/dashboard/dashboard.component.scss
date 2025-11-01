@@ -221,6 +221,95 @@ canvas {
   }
 }
 
+// Gridstack Container
+.gridstack-container {
+  min-height: 400px;
+  
+  // Ensure proper spacing in grid
+  .grid-stack {
+    // Maintain default spacing between items
+    gap: 0;
+  }
+  
+  .grid-stack-item {
+    // Prevent items from shrinking but allow proper sizing
+    min-width: 0;
+    min-height: 0;
+    // Ensure items maintain their allocated space
+    box-sizing: border-box;
+    
+    .grid-stack-item-content {
+      border-radius: var(--border-radius);
+      background: white;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      // Prevent content from shrinking - fill entire grid cell
+      min-width: 100%;
+      min-height: 100%;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      
+      // Keep stat card styles when inside grid
+      &.stat-card {
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        
+        &:hover {
+          transform: none; // Override stat-card hover
+          box-shadow: var(--shadow);
+        }
+      }
+      
+      &:hover {
+        box-shadow: var(--shadow);
+      }
+    }
+  }
+  
+  .widget-header {
+    cursor: grab;
+    user-select: none;
+    
+    &:active {
+      cursor: grabbing;
+    }
+    
+    &:hover {
+      background-color: rgba(102, 126, 234, 0.05) !important;
+    }
+  }
+  
+  // Make stat cards draggable when they ARE the widget-header
+  .stat-card.widget-header {
+    cursor: grab;
+    
+    &:active {
+      cursor: grabbing;
+    }
+  }
+}
+
+// Gridstack handle styling
+.grid-stack-item.ui-draggable-dragging {
+  opacity: 0.8;
+  
+  .grid-stack-item-content {
+    box-shadow: var(--shadow-lg);
+    transform: rotate(1deg);
+  }
+}
+
+.grid-stack-item.ui-resizable-resizing {
+  .grid-stack-item-content {
+    box-shadow: var(--shadow-lg);
+  }
+}
+
 // Responsive adjustments
 @media (max-width: 768px) {
   .dashboard-container {
@@ -263,6 +352,14 @@ canvas {
     .d-flex {
       flex-direction: column;
       gap: 1rem;
+    }
+  }
+  
+  .gridstack-container {
+    min-height: 300px;
+    
+    .chart-container {
+      height: 200px;
     }
   }
 }

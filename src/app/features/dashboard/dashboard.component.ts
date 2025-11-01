@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, ElementRef, AfterViewInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DashboardDataService } from '../../core/services/dashboard-data.service';
+import { DashboardLayoutService } from '../../core/services/dashboard-layout.service';
 import {
   ActivityRow,
   DashboardData,
@@ -10,6 +11,8 @@ import {
   SaleRow,
 } from '../../core/models/dashboard.module';
 import { Chart, registerables } from 'chart.js';
+import { GridStack } from 'gridstack';
+import { Subscription } from 'rxjs';
 
 // Register all Chart.js components
 Chart.register(...registerables);
@@ -21,8 +24,11 @@ Chart.register(...registerables);
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent implements OnInit, AfterViewInit {
+export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly dataSvc = inject(DashboardDataService);
+  private readonly layoutService = inject(DashboardLayoutService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private subscriptions = new Subscription();
 
   sales: SaleRow[] = [];
   activity: ActivityRow[] = [];
@@ -31,7 +37,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   // Filter states
   dateRange: string = '7d';
-  searchTerm: string = '';
+  // searchTerm: string = '';
   
   // Table states
   sortedColumn: string = '';
@@ -48,19 +54,198 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   barChart?: Chart;
   pieChart?: Chart;
 
+  // Gridstack
+  @ViewChild('gridStack') gridStackRef?: ElementRef<HTMLDivElement>;
+  private grid?: GridStack;
+
   // Store original data for filtering
   originalActivity: ActivityRow[] = [];
   originalEngagement: EngagementRow[] = [];
   originalProducts: ProductRow[] = [];
 
+  // Layout editing state
+  isEditMode: boolean = false;
+
   ngOnInit(): void {
     this.loadData();
+    
+    // Subscribe to layout service events
+    this.subscriptions.add(
+      this.layoutService.toggleEditMode$.subscribe(() => {
+        this.toggleEditMode();
+      })
+    );
+    
+    this.subscriptions.add(
+      this.layoutService.saveLayout$.subscribe(() => {
+        this.saveLayout();
+      })
+    );
   }
 
   ngAfterViewInit(): void {
+    // Initialize after view is ready and data is loaded
+    this.waitForDataAndInit();
+  }
+  
+  private waitForDataAndInit(): void {
+    // Check if data is loaded and DOM elements exist
+    if (this.activity.length === 0 || !this.gridStackRef?.nativeElement) {
+      setTimeout(() => this.waitForDataAndInit(), 50);
+      return;
+    }
+    
+    // Wait a bit more to ensure Angular has fully compiled the template
     setTimeout(() => {
-      this.initializeCharts();
+      // Force change detection to ensure DOM is fully rendered
+      this.cdr.detectChanges();
+      
+        // Initialize charts first, then grid after charts are ready
+        this.initializeCharts(() => {
+          // Force another change detection before initializing grid
+          this.cdr.detectChanges();
+          this.initializeGridStack();
+        });
     }, 100);
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+    if ((this as any).saveTimeout) {
+      clearTimeout((this as any).saveTimeout);
+    }
+    if (this.grid) {
+      this.grid.destroy(false);
+    }
+  }
+
+  initializeGridStack(): void {
+    if (!this.gridStackRef) {
+      setTimeout(() => this.initializeGridStack(), 100);
+      return;
+    }
+
+    this.grid = GridStack.init(
+      {
+        cellHeight: 70,
+        margin: 16,
+        animate: true,
+        float: true,
+        column: 12,
+        staticGrid: true,
+        draggable: {
+          handle: '.widget-header, .stat-card',
+        },
+        resizable: {
+          handles: 'e, se, s, sw, w'
+        },
+      },
+      this.gridStackRef.nativeElement
+    );
+
+    // Auto-save layout on change (only when in edit mode)
+    this.grid.on('change', () => {
+      if (this.isEditMode) {
+        // Debounce save to avoid too many localStorage writes
+        if ((this as any).saveTimeout) {
+          clearTimeout((this as any).saveTimeout);
+        }
+        (this as any).saveTimeout = setTimeout(() => {
+          this.saveLayout();
+        }, 300);
+      }
+    });
+
+    // Load saved layout after grid initialization and Angular has rendered content
+    // Use setTimeout with longer delay to ensure Angular bindings are fully processed
+    setTimeout(() => {
+      this.loadGridLayout();
+      // Force change detection after loading layout
+      this.cdr.detectChanges();
+    }, 200);
+  }
+  
+  toggleEditMode(): void {
+    this.isEditMode = !this.isEditMode;
+    if (this.grid) {
+      if (this.isEditMode) {
+        this.grid.setStatic(false);
+      } else {
+        this.grid.setStatic(true);
+      }
+    }
+  }
+  
+  saveLayout(): void {
+    if (this.grid) {
+      // Save only layout positions and sizes, not content (to preserve Angular bindings)
+      const layout = this.grid.save(false);
+      localStorage.setItem('dashboardLayout', JSON.stringify(layout));
+      
+      // Show notification
+      const btn = document.querySelector('.save-layout-btn');
+      if (btn) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Saved!';
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-primary');
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.classList.remove('btn-success');
+          btn.classList.add('btn-primary');
+        }, 2000);
+      }
+    }
+  }
+
+  loadGridLayout(): void {
+    const savedLayout = localStorage.getItem('dashboardLayout');
+    if (savedLayout && this.grid) {
+      try {
+        const layout = JSON.parse(savedLayout);
+        
+        // Check if layout contains content (old corrupted format) - if so, filter it
+        const cleanLayout = Array.isArray(layout) ? layout.map((item: any) => {
+          // Only keep position/size data, remove any content
+          const clean: any = {
+            id: item.id || item.gsId,
+            x: item.x ?? item.gsX,
+            y: item.y ?? item.gsY,
+            w: item.w ?? item.gsW,
+            h: item.h ?? item.gsH
+          };
+          // Remove undefined/null values
+          Object.keys(clean).forEach(key => {
+            if (clean[key] === undefined || clean[key] === null || clean[key] === '') {
+              delete clean[key];
+            }
+          });
+          return clean;
+        }).filter((item: any) => item.id && item.x !== undefined && item.y !== undefined) : layout;
+        
+        // Manually update positions to preserve Angular bindings
+        // Instead of using load() which might manipulate DOM, update each item individually
+        if (cleanLayout && Array.isArray(cleanLayout) && cleanLayout.length > 0 && this.gridStackRef) {
+          cleanLayout.forEach((item: any) => {
+            // Find the grid item by gs-id attribute
+            const node = this.gridStackRef?.nativeElement.querySelector(`[gs-id="${item.id}"]`) as HTMLElement;
+            if (node && this.grid) {
+              // Use GridStack's update method to change position without breaking bindings
+              this.grid.update(node, {
+                x: item.x,
+                y: item.y,
+                w: item.w,
+                h: item.h
+              });
+            }
+          });
+        }
+      } catch (e) {
+        console.error('Failed to load saved layout:', e);
+        // Clear invalid layout
+        localStorage.removeItem('dashboardLayout');
+      }
+    }
   }
 
   loadData(): void {
@@ -85,15 +270,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  initializeCharts(): void {
+  initializeCharts(callback?: () => void): void {
     if (!this.lineChartRef || !this.barChartRef || !this.pieChartRef) {
-      setTimeout(() => this.initializeCharts(), 100);
+      setTimeout(() => this.initializeCharts(callback), 100);
       return;
     }
     
     this.createLineChart();
     this.createBarChart();
     this.createPieChart();
+    
+    // Call callback after charts are initialized - give more time for Chart.js to render
+    if (callback) {
+      setTimeout(callback, 300);
+    }
   }
   
   applyFilters(): void {
@@ -111,15 +301,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
     
     // Apply search filter
-    if (this.searchTerm) {
-      const search = this.searchTerm.toLowerCase();
-      filteredActivity = filteredActivity.filter(item => 
-        item.date.toLowerCase().includes(search) ||
-        item.activeUsers.toString().includes(search) ||
-        item.newUsers.toString().includes(search) ||
-        item.sessions.toString().includes(search)
-      );
-    }
+    // if (this.searchTerm) {
+    //   const search = this.searchTerm.toLowerCase();
+    //   filteredActivity = filteredActivity.filter(item => 
+    //     item.date.toLowerCase().includes(search) ||
+    //     item.activeUsers.toString().includes(search) ||
+    //     item.newUsers.toString().includes(search) ||
+    //     item.sessions.toString().includes(search)
+    //   );
+    // }
     
     this.activity = filteredActivity;
   }
@@ -288,11 +478,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.updateCharts();
   }
 
-  onSearch(): void {
-    this.currentPage = 1;
-    this.applyFilters();
-    this.updateCharts();
-  }
+  // onSearch(): void {
+  //   this.currentPage = 1;
+  //   this.applyFilters();
+  //   this.updateCharts();
+  // }
 
   sortTable(column: string): void {
     if (this.sortedColumn === column) {

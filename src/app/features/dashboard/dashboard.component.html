@@ -25,11 +25,11 @@
             <option value="all">All Time</option>
           </select>
         </div>
-        <div class="col-12 col-md-6 col-lg-4">
+        <!-- <div class="col-12 col-md-6 col-lg-4">
           <label class="form-label fw-semibold">
             <i class="bi bi-search me-2"></i>Search
           </label>
-          <div class="input-group">
+          <div class="input-group"	>
             <input 
               type="text" 
               class="form-control" 
@@ -41,7 +41,7 @@
               <i class="bi bi-funnel"></i>
             </span>
           </div>
-        </div>
+        </div> -->
         <div class="col-12 col-md-6 col-lg-4 d-flex align-items-end">
           <button class="btn btn-outline-primary w-100">
             <i class="bi bi-download me-2"></i>Export Report
@@ -51,11 +51,12 @@
     </div>
   </div>
 
-  <!-- Summary Stats Cards -->
-  <div class="row g-4 mb-4">
+  <!-- Draggable and Resizable Widgets Grid -->
+  <div class="gridstack-container mb-4" #gridStack>
+    <!-- Summary Stats Cards - Now Draggable and Resizable -->
     <!-- Total Revenue Card -->
-    <div class="col-12 col-md-6 col-lg-3">
-      <div class="stat-card stat-card-primary">
+    <div class="grid-stack-item" gs-id="stat-revenue" gs-w="3" gs-h="2" gs-x="0" gs-y="0">
+      <div class="grid-stack-item-content stat-card stat-card-primary widget-header">
         <div class="stat-card-icon">
           <i class="bi bi-currency-dollar"></i>
         </div>
@@ -70,8 +71,8 @@
     </div>
 
     <!-- Active Users Card -->
-    <div class="col-12 col-md-6 col-lg-3">
-      <div class="stat-card stat-card-info">
+    <div class="grid-stack-item" gs-id="stat-users" gs-w="3" gs-h="2" gs-x="3" gs-y="0">
+      <div class="grid-stack-item-content stat-card stat-card-info widget-header">
         <div class="stat-card-icon">
           <i class="bi bi-people"></i>
         </div>
@@ -86,8 +87,8 @@
     </div>
 
     <!-- Total Sessions Card -->
-    <div class="col-12 col-md-6 col-lg-3">
-      <div class="stat-card stat-card-success">
+    <div class="grid-stack-item" gs-id="stat-sessions" gs-w="3" gs-h="2" gs-x="6" gs-y="0">
+      <div class="grid-stack-item-content stat-card stat-card-success widget-header">
         <div class="stat-card-icon">
           <i class="bi bi-graph-up"></i>
         </div>
@@ -102,8 +103,8 @@
     </div>
 
     <!-- Average Session Duration Card -->
-    <div class="col-12 col-md-6 col-lg-3">
-      <div class="stat-card stat-card-warning">
+    <div class="grid-stack-item" gs-id="stat-avg-session" gs-w="3" gs-h="2" gs-x="9" gs-y="0">
+      <div class="grid-stack-item-content stat-card stat-card-warning widget-header">
         <div class="stat-card-icon">
           <i class="bi bi-clock-history"></i>
         </div>
@@ -116,14 +117,11 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Charts Section -->
-  <div class="row g-4 mb-4">
-    <!-- Line Chart -->
-    <div class="col-12 col-lg-8">
-      <div class="card shadow-sm h-100">
-        <div class="card-header bg-white border-bottom">
+    <!-- Line Chart Widget -->
+    <div class="grid-stack-item" gs-id="chart-line" gs-w="8" gs-h="5" gs-x="0" gs-y="2">
+      <div class="grid-stack-item-content card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom widget-header">
           <h5 class="mb-0 fw-semibold">
             <i class="bi bi-graph-up me-2"></i>User Activity Over Time
           </h5>
@@ -136,10 +134,10 @@
       </div>
     </div>
 
-    <!-- Pie Chart -->
-    <div class="col-12 col-lg-4">
-      <div class="card shadow-sm h-100">
-        <div class="card-header bg-white border-bottom">
+    <!-- Pie Chart Widget -->
+    <div class="grid-stack-item" gs-id="chart-pie" gs-w="4" gs-h="5" gs-x="8" gs-y="2">
+      <div class="grid-stack-item-content card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom widget-header">
           <h5 class="mb-0 fw-semibold">
             <i class="bi bi-pie-chart me-2"></i>Revenue by Product
           </h5>
@@ -151,13 +149,11 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Bar Chart -->
-  <div class="row g-4 mb-4">
-    <div class="col-12">
-      <div class="card shadow-sm">
-        <div class="card-header bg-white border-bottom">
+    <!-- Bar Chart Widget -->
+    <div class="grid-stack-item" gs-id="chart-bar" gs-w="12" gs-h="4" gs-x="0" gs-y="7">
+      <div class="grid-stack-item-content card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom widget-header">
           <h5 class="mb-0 fw-semibold">
             <i class="bi bi-bar-chart me-2"></i>Engagement by Platform
           </h5>
@@ -169,14 +165,11 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Data Tables Section -->
-  <div class="row g-4">
-    <!-- User Activity Table with Sorting and Pagination -->
-    <div class="col-12">
-      <div class="card shadow-sm">
-        <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+    <!-- User Activity Table Widget -->
+    <div class="grid-stack-item" gs-id="table-activity" gs-w="8" gs-h="7" gs-x="0" gs-y="11">
+      <div class="grid-stack-item-content card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom widget-header d-flex align-items-center justify-content-between">
           <h5 class="mb-0 fw-semibold">
             <i class="bi bi-calendar3 me-2"></i>User Activity Details
           </h5>
@@ -280,14 +273,14 @@
       </div>
     </div>
 
-    <!-- Engagement Table -->
-    <div class="col-12 col-lg-6">
-      <div class="card shadow-sm h-100">
-        <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+    <!-- Engagement Table Widget -->
+    <div class="grid-stack-item" gs-id="table-engagement" gs-w="4" gs-h="3" gs-x="8" gs-y="11">
+      <div class="grid-stack-item-content card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom widget-header d-flex align-items-center justify-content-between">
           <h5 class="mb-0 fw-semibold">
-            <i class="bi bi-bar-chart me-2"></i>Engagement by Platform
+            <i class="bi bi-bar-chart me-2"></i>Engagement
           </h5>
-          <span class="badge bg-info">{{ engagement.length }} platforms</span>
+          <span class="badge bg-info">{{ engagement.length }}</span>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
@@ -295,9 +288,8 @@
               <thead class="table-light">
                 <tr>
                   <th>Platform</th>
-                  <th class="text-end">Page Views</th>
-                  <th class="text-end">Avg. Session</th>
-                  <th class="text-end">Bounce Rate</th>
+                  <th class="text-end">Views</th>
+                  <th class="text-end">Rate</th>
                 </tr>
               </thead>
               <tbody>
@@ -306,7 +298,6 @@
                     <span class="badge bg-primary-subtle">{{ r.platform }}</span>
                   </td>
                   <td class="text-end">{{ r.pageViews | number }}</td>
-                  <td class="text-end">{{ r.avgSessionDuration }} min</td>
                   <td class="text-end">
                     <span class="badge" [ngClass]="getBounceRateClass(r.bounceRate)">{{ r.bounceRate }}%</span>
                   </td>
@@ -318,14 +309,14 @@
       </div>
     </div>
 
-    <!-- Top Products Table -->
-    <div class="col-12 col-lg-6">
-      <div class="card shadow-sm h-100">
-        <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between">
+    <!-- Top Products Table Widget -->
+    <div class="grid-stack-item" gs-id="table-products" gs-w="4" gs-h="4" gs-x="8" gs-y="14">
+      <div class="grid-stack-item-content card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom widget-header d-flex align-items-center justify-content-between">
           <h5 class="mb-0 fw-semibold">
-            <i class="bi bi-box-seam me-2"></i>Top Products Performance
+            <i class="bi bi-box-seam me-2"></i>Top Products
           </h5>
-          <span class="badge bg-success">{{ products.length }} products</span>
+          <span class="badge bg-success">{{ products.length }}</span>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
@@ -333,19 +324,13 @@
               <thead class="table-light">
                 <tr>
                   <th>Product</th>
-                  <th class="text-end">Sales</th>
                   <th class="text-end">Revenue</th>
-                  <th class="text-end">Revenue per Sale</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let r of products">
                   <td class="fw-medium">{{ r.product }}</td>
-                  <td class="text-end">
-                    <span class="badge bg-info-subtle text-info">{{ r.sales | number }}</span>
-                  </td>
                   <td class="text-end fw-semibold">${{ r.revenue | number }}</td>
-                  <td class="text-end">${{ (r.revenue / r.sales) | number:'1.0-0' }}</td>
                 </tr>
               </tbody>
             </table>

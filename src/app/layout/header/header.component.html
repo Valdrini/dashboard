@@ -47,9 +47,22 @@
       </svg>
     <span class="fw-semibold">My Dashboard</span>
   </div>
-  <div class="ms-auto d-flex align-items-center">
-    <button class="btn btn-primary" (click)="onSaveLayout()">
-      Save layout
+  <div class="ms-auto d-flex align-items-center gap-2">
+    <button 
+      class="btn" 
+      [class.btn-outline-primary]="!editMode"
+      [class.btn-primary]="editMode"
+      (click)="onToggleEditMode()"
+    >
+      <i class="bi" [ngClass]="editMode ? 'bi-x-circle me-2' : 'bi-pencil me-2'"></i>
+      {{ editMode ? 'Done' : 'Edit Layout' }}
+    </button>
+    <button 
+      class="btn btn-primary save-layout-btn" 
+      (click)="onSaveLayout()"
+      [disabled]="!editMode"
+    >
+      <i class="bi bi-floppy me-2"></i>Save Layout
     </button>
   </div>
 </header>

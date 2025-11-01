@@ -4,6 +4,9 @@
 @import 'bootstrap/scss/bootstrap';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 
+/* Import Gridstack */
+@import 'gridstack/dist/gridstack.min.css';
+
 /* Custom Global Styles */
 :root {
   --primary-color: #0d6efd;
