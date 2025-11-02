@@ -22,4 +22,8 @@ export class HeaderComponent {
   onSaveLayout(): void {
     this.layoutService.saveLayout();
   }
+
+  onToggleSidebar(): void {
+    this.layoutService.toggleSidebar();
+  }
 }

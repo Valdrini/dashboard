@@ -18,32 +18,15 @@
             [(ngModel)]="dateRange" 
             (change)="onDateRangeChange()"
           >
-            <option value="7d">Last 7 Days</option>
-            <option value="30d">Last 30 Days</option>
-            <option value="90d">Last 90 Days</option>
-            <option value="1y">Last Year</option>
+            <option value="7d">7 Days</option>
+            <option value="30d">30 Days</option>
+            <option value="90d">90 Days</option>
+            <option value="1y">Year</option>
             <option value="all">All Time</option>
           </select>
         </div>
-        <!-- <div class="col-12 col-md-6 col-lg-4">
-          <label class="form-label fw-semibold">
-            <i class="bi bi-search me-2"></i>Search
-          </label>
-          <div class="input-group"	>
-            <input 
-              type="text" 
-              class="form-control" 
-              placeholder="Search..."
-              [(ngModel)]="searchTerm"
-              (input)="onSearch()"
-            >
-            <span class="input-group-text">
-              <i class="bi bi-funnel"></i>
-            </span>
-          </div>
-        </div> -->
         <div class="col-12 col-md-6 col-lg-4 d-flex align-items-end">
-          <button class="btn btn-outline-primary w-100">
+          <button class="btn btn-outline-primary w-100" (click)="openExportModal()">
             <i class="bi bi-download me-2"></i>Export Report
           </button>
         </div>
@@ -53,7 +36,6 @@
 
   <!-- Draggable and Resizable Widgets Grid -->
   <div class="gridstack-container mb-4" #gridStack>
-    <!-- Summary Stats Cards - Now Draggable and Resizable -->
     <!-- Total Revenue Card -->
     <div class="grid-stack-item" gs-id="stat-revenue" gs-w="3" gs-h="2" gs-x="0" gs-y="0">
       <div class="grid-stack-item-content stat-card stat-card-primary widget-header">
@@ -119,7 +101,7 @@
     </div>
 
     <!-- Line Chart Widget -->
-    <div class="grid-stack-item" gs-id="chart-line" gs-w="8" gs-h="5" gs-x="0" gs-y="2">
+    <div class="grid-stack-item" gs-id="chart-line" gs-w="8" gs-h="6" gs-x="0" gs-y="2">
       <div class="grid-stack-item-content card shadow-sm h-100">
         <div class="card-header bg-white border-bottom widget-header">
           <h5 class="mb-0 fw-semibold">
@@ -135,7 +117,7 @@
     </div>
 
     <!-- Pie Chart Widget -->
-    <div class="grid-stack-item" gs-id="chart-pie" gs-w="4" gs-h="5" gs-x="8" gs-y="2">
+    <div class="grid-stack-item" gs-id="chart-pie" gs-w="4" gs-h="6" gs-x="8" gs-y="2">
       <div class="grid-stack-item-content card shadow-sm h-100">
         <div class="card-header bg-white border-bottom widget-header">
           <h5 class="mb-0 fw-semibold">
@@ -151,7 +133,7 @@
     </div>
 
     <!-- Bar Chart Widget -->
-    <div class="grid-stack-item" gs-id="chart-bar" gs-w="12" gs-h="4" gs-x="0" gs-y="7">
+    <div class="grid-stack-item" gs-id="chart-bar" gs-w="12" gs-h="7" gs-x="0" gs-y="7">
       <div class="grid-stack-item-content card shadow-sm h-100">
         <div class="card-header bg-white border-bottom widget-header">
           <h5 class="mb-0 fw-semibold">
@@ -339,4 +321,69 @@
       </div>
     </div>
   </div>
+
+  <!-- Export Modal -->
+  <div 
+    class="modal fade" 
+    [class.show]="showExportModal" 
+    [style.display]="showExportModal ? 'block' : 'none'"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="exportModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exportModalLabel">
+            <i class="bi bi-download me-2"></i>Export Data
+          </h5>
+          <button 
+            type="button" 
+            class="btn-close" 
+            (click)="closeExportModal()"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted mb-4">Choose the format to export your filtered dashboard data:</p>
+          <div class="d-grid gap-3">
+            <button 
+              class="btn btn-lg btn-outline-primary d-flex align-items-center justify-content-center"
+              (click)="exportAsCSV()"
+            >
+              <i class="bi bi-filetype-csv fs-3 me-3"></i>
+              <div class="text-start">
+                <div class="fw-bold">Export as CSV</div>
+                <small class="text-muted">Comma-separated values file</small>
+              </div>
+            </button>
+            <button 
+              class="btn btn-lg btn-outline-danger d-flex align-items-center justify-content-center"
+              (click)="exportAsPDF()"
+            >
+              <i class="bi bi-filetype-pdf fs-3 me-3"></i>
+              <div class="text-start">
+                <div class="fw-bold">Export as PDF</div>
+                <small class="text-muted">Portable document format</small>
+              </div>
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeExportModal()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Backdrop -->
+  <div 
+    class="modal-backdrop fade" 
+    [class.show]="showExportModal"
+    [style.display]="showExportModal ? 'block' : 'none'"
+    (click)="closeExportModal()"
+  ></div>
 </div>

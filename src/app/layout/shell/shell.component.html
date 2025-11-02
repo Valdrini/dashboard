@@ -1,6 +1,7 @@
 <app-header></app-header>
 <div class="shell-layout">
   <app-sidenav></app-sidenav>
+  <div class="sidenav-overlay" [class.show]="isSidebarOpen" (click)="closeSidebar()"></div>
   <main>
     <router-outlet></router-outlet>
   </main>

@@ -4,7 +4,6 @@ import { Observable, of } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardDataService {
-  // Static data; can be replaced by HTTP later
   private readonly data: DashboardData = {
     sales: [
       { month: 'January', revenue: 12000, orders: 310, returns: 12 },

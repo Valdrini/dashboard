@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Subject, BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -7,9 +7,11 @@ import { Subject } from 'rxjs';
 export class DashboardLayoutService {
   private toggleEditModeSubject = new Subject<void>();
   private saveLayoutSubject = new Subject<void>();
+  private sidebarOpenSubject = new BehaviorSubject<boolean>(false);
 
   toggleEditMode$ = this.toggleEditModeSubject.asObservable();
   saveLayout$ = this.saveLayoutSubject.asObservable();
+  sidebarOpen$ = this.sidebarOpenSubject.asObservable();
 
   toggleEditMode(): void {
     this.toggleEditModeSubject.next();
@@ -17,5 +19,17 @@ export class DashboardLayoutService {
 
   saveLayout(): void {
     this.saveLayoutSubject.next();
+  }
+
+  toggleSidebar(): void {
+    this.sidebarOpenSubject.next(!this.sidebarOpenSubject.value);
+  }
+
+  closeSidebar(): void {
+    this.sidebarOpenSubject.next(false);
+  }
+
+  get isSidebarOpen(): boolean {
+    return this.sidebarOpenSubject.value;
   }
 }

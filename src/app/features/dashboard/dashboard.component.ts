@@ -11,11 +11,14 @@ import {
   SaleRow,
 } from '../../core/models/dashboard.module';
 import { Chart, registerables } from 'chart.js';
+import zoomPlugin from 'chartjs-plugin-zoom';
 import { GridStack } from 'gridstack';
 import { Subscription } from 'rxjs';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // Register all Chart.js components
-Chart.register(...registerables);
+Chart.register(...registerables, zoomPlugin);
 
 @Component({
   selector: 'app-dashboard',
@@ -37,8 +40,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Filter states
   dateRange: string = '7d';
-  // searchTerm: string = '';
-  
+
   // Table states
   sortedColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
@@ -49,7 +51,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('lineChart') lineChartRef?: ElementRef<HTMLCanvasElement>;
   @ViewChild('barChart') barChartRef?: ElementRef<HTMLCanvasElement>;
   @ViewChild('pieChart') pieChartRef?: ElementRef<HTMLCanvasElement>;
-  
+
   lineChart?: Chart;
   barChart?: Chart;
   pieChart?: Chart;
@@ -66,16 +68,19 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   // Layout editing state
   isEditMode: boolean = false;
 
+  // Export modal state
+  showExportModal: boolean = false;
+
   ngOnInit(): void {
     this.loadData();
-    
+
     // Subscribe to layout service events
     this.subscriptions.add(
       this.layoutService.toggleEditMode$.subscribe(() => {
         this.toggleEditMode();
       })
     );
-    
+
     this.subscriptions.add(
       this.layoutService.saveLayout$.subscribe(() => {
         this.saveLayout();
@@ -87,25 +92,24 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     // Initialize after view is ready and data is loaded
     this.waitForDataAndInit();
   }
-  
+
   private waitForDataAndInit(): void {
     // Check if data is loaded and DOM elements exist
     if (this.activity.length === 0 || !this.gridStackRef?.nativeElement) {
-      setTimeout(() => this.waitForDataAndInit(), 50);
+      setTimeout(() => this.waitForDataAndInit(), 150);
       return;
     }
-    
-    // Wait a bit more to ensure Angular has fully compiled the template
+
     setTimeout(() => {
       // Force change detection to ensure DOM is fully rendered
       this.cdr.detectChanges();
-      
-        // Initialize charts first, then grid after charts are ready
-        this.initializeCharts(() => {
-          // Force another change detection before initializing grid
-          this.cdr.detectChanges();
-          this.initializeGridStack();
-        });
+
+      // Initialize charts first, then grid after charts are ready
+      this.initializeCharts(() => {
+        // Detection before initializing grid
+        this.cdr.detectChanges();
+        this.initializeGridStack();
+      });
     }, 100);
   }
 
@@ -125,13 +129,36 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    // Determine column count based on screen size
+    const getColumnCount = (): number => {
+      if (window.innerWidth < 576) return 1;
+      if (window.innerWidth < 768) return 2;
+      if (window.innerWidth < 992) return 6;
+      return 12;
+    };
+
+    // Determine cell height based on screen size
+    const getCellHeight = (): number => {
+      if (window.innerWidth < 576) return 80;
+      if (window.innerWidth < 768) return 75;
+      return 70;
+    };
+
+    // Determine margin based on screen size
+    const getMargin = (): number => {
+      if (window.innerWidth < 576) return 8;
+      if (window.innerWidth < 768) return 12;
+      return 15; // Default 15px gap for rows and columns
+    };
+
     this.grid = GridStack.init(
       {
-        cellHeight: 70,
-        margin: 16,
+        cellHeight: getCellHeight(),
+        margin: getMargin(),
+        marginUnit: 'px',
         animate: true,
         float: true,
-        column: 12,
+        column: getColumnCount(),
         staticGrid: true,
         draggable: {
           handle: '.widget-header, .stat-card',
@@ -143,7 +170,36 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.gridStackRef.nativeElement
     );
 
-    // Auto-save layout on change (only when in edit mode)
+    const currentMargin = getMargin();
+    this.grid.margin(currentMargin);
+
+    const handleResize = (): void => {
+      if (this.grid) {
+        const newColumns = getColumnCount();
+        const newCellHeight = getCellHeight();
+        const newMargin = getMargin();
+
+        const currentColumns = (this.grid as any).column();
+        if (currentColumns !== newColumns) {
+          this.grid.column(newColumns, 'none');
+        }
+        if ((this.grid as any).opts.cellHeight !== newCellHeight) {
+          this.grid.cellHeight(newCellHeight);
+        }
+        if ((this.grid as any).opts.margin !== newMargin) {
+          this.grid.margin(newMargin);
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Clean up event listener on destroy
+    this.subscriptions.add({
+      unsubscribe: () => window.removeEventListener('resize', handleResize)
+    });
+
+    // Auto-save layout on change
     this.grid.on('change', () => {
       if (this.isEditMode) {
         // Debounce save to avoid too many localStorage writes
@@ -156,15 +212,17 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Load saved layout after grid initialization and Angular has rendered content
-    // Use setTimeout with longer delay to ensure Angular bindings are fully processed
+    // Load saved layout after grid initialization 
     setTimeout(() => {
       this.loadGridLayout();
-      // Force change detection after loading layout
+      const currentMargin = getMargin();
+      if (this.grid) {
+        this.grid.margin(currentMargin);
+      }
       this.cdr.detectChanges();
     }, 200);
   }
-  
+
   toggleEditMode(): void {
     this.isEditMode = !this.isEditMode;
     if (this.grid) {
@@ -175,13 +233,13 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
   }
-  
+
   saveLayout(): void {
     if (this.grid) {
-      // Save only layout positions and sizes, not content (to preserve Angular bindings)
+      // Save only layout positions and sizes
       const layout = this.grid.save(false);
       localStorage.setItem('dashboardLayout', JSON.stringify(layout));
-      
+
       // Show notification
       const btn = document.querySelector('.save-layout-btn');
       if (btn) {
@@ -203,10 +261,9 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (savedLayout && this.grid) {
       try {
         const layout = JSON.parse(savedLayout);
-        
-        // Check if layout contains content (old corrupted format) - if so, filter it
+
+        // Check if layout contains content
         const cleanLayout = Array.isArray(layout) ? layout.map((item: any) => {
-          // Only keep position/size data, remove any content
           const clean: any = {
             id: item.id || item.gsId,
             x: item.x ?? item.gsX,
@@ -214,7 +271,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
             w: item.w ?? item.gsW,
             h: item.h ?? item.gsH
           };
-          // Remove undefined/null values
           Object.keys(clean).forEach(key => {
             if (clean[key] === undefined || clean[key] === null || clean[key] === '') {
               delete clean[key];
@@ -222,15 +278,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           });
           return clean;
         }).filter((item: any) => item.id && item.x !== undefined && item.y !== undefined) : layout;
-        
-        // Manually update positions to preserve Angular bindings
-        // Instead of using load() which might manipulate DOM, update each item individually
+
+        // Manually update positions to preserve bindings 
         if (cleanLayout && Array.isArray(cleanLayout) && cleanLayout.length > 0 && this.gridStackRef) {
           cleanLayout.forEach((item: any) => {
-            // Find the grid item by gs-id attribute
             const node = this.gridStackRef?.nativeElement.querySelector(`[gs-id="${item.id}"]`) as HTMLElement;
             if (node && this.grid) {
-              // Use GridStack's update method to change position without breaking bindings
               this.grid.update(node, {
                 x: item.x,
                 y: item.y,
@@ -242,7 +295,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       } catch (e) {
         console.error('Failed to load saved layout:', e);
-        // Clear invalid layout
         localStorage.removeItem('dashboardLayout');
       }
     }
@@ -254,15 +306,15 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.activity = data.userActivity;
       this.engagement = data.engagement;
       this.products = data.topProducts;
-      
+
       // Store original data
       this.originalActivity = [...data.userActivity];
       this.originalEngagement = [...data.engagement];
       this.originalProducts = [...data.topProducts];
-      
+
       // Apply filters
       this.applyFilters();
-      
+
       // Update charts if they exist
       if (this.lineChart && this.barChart && this.pieChart) {
         this.updateCharts();
@@ -275,21 +327,21 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       setTimeout(() => this.initializeCharts(callback), 100);
       return;
     }
-    
+
     this.createLineChart();
     this.createBarChart();
     this.createPieChart();
-    
-    // Call callback after charts are initialized - give more time for Chart.js to render
+
+    // Call callback after charts are initialized
     if (callback) {
       setTimeout(callback, 300);
     }
   }
-  
+
   applyFilters(): void {
-    // Apply date range filter (for demo, just limit number of records)
+    // Apply date range filter
     let filteredActivity = [...this.originalActivity];
-    
+
     if (this.dateRange === '7d') {
       filteredActivity = this.originalActivity.slice(0, 7);
     } else if (this.dateRange === '30d') {
@@ -299,24 +351,13 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     } else if (this.dateRange === 'all') {
       filteredActivity = [...this.originalActivity];
     }
-    
-    // Apply search filter
-    // if (this.searchTerm) {
-    //   const search = this.searchTerm.toLowerCase();
-    //   filteredActivity = filteredActivity.filter(item => 
-    //     item.date.toLowerCase().includes(search) ||
-    //     item.activeUsers.toString().includes(search) ||
-    //     item.newUsers.toString().includes(search) ||
-    //     item.sessions.toString().includes(search)
-    //   );
-    // }
-    
+
     this.activity = filteredActivity;
   }
 
   createLineChart(): void {
     if (!this.lineChartRef) return;
-    
+
     const ctx = this.lineChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
@@ -352,12 +393,51 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           },
           title: {
             display: false
+          },
+          tooltip: {
+            enabled: true,
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            borderColor: '#667eea',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: true,
+            callbacks: {
+              label: (context) => {
+                const label = context.dataset.label || '';
+                const value = (context.parsed.y ?? 0).toLocaleString();
+                return `${label}: ${value}`;
+              }
+            }
+          },
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: 'xy',
+            },
+            zoom: {
+              wheel: {
+                enabled: true,
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'xy',
+            }
           }
         },
         scales: {
           y: {
             beginAtZero: true
           }
+        },
+        interaction: {
+          mode: 'nearest',
+          axis: 'x',
+          intersect: false
         }
       }
     });
@@ -365,7 +445,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   createBarChart(): void {
     if (!this.barChartRef) return;
-    
+
     const ctx = this.barChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
@@ -400,6 +480,36 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           },
           title: {
             display: false
+          },
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            borderColor: '#667eea',
+            borderWidth: 1,
+            padding: 12,
+            callbacks: {
+              label: (context) => {
+                const value = (context.parsed.y ?? 0).toLocaleString();
+                return `Page Views: ${value}`;
+              }
+            }
+          },
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: 'x',
+            },
+            zoom: {
+              wheel: {
+                enabled: true,
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'x',
+            }
           }
         },
         scales: {
@@ -413,7 +523,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   createPieChart(): void {
     if (!this.pieChartRef) return;
-    
+
     const ctx = this.pieChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
@@ -445,6 +555,25 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
           },
           title: {
             display: false
+          },
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            borderColor: '#667eea',
+            borderWidth: 1,
+            padding: 12,
+            callbacks: {
+              label: (context) => {
+                const label = context.label || '';
+                const value = context.parsed.toLocaleString();
+                const dataset = context.dataset;
+                const total = (dataset.data as number[]).reduce((acc, val) => acc + val, 0);
+                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                return `${label}: $${value} (${percentage}%)`;
+              }
+            }
           }
         }
       }
@@ -458,13 +587,13 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.lineChart.data.datasets[1].data = this.activity.map(a => a.sessions);
       this.lineChart.update();
     }
-    
+
     if (this.barChart) {
       this.barChart.data.labels = this.engagement.map(e => e.platform);
       this.barChart.data.datasets[0].data = this.engagement.map(e => e.pageViews);
       this.barChart.update();
     }
-    
+
     if (this.pieChart) {
       this.pieChart.data.labels = this.products.map(p => p.product);
       this.pieChart.data.datasets[0].data = this.products.map(p => p.revenue);
@@ -478,12 +607,6 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.updateCharts();
   }
 
-  // onSearch(): void {
-  //   this.currentPage = 1;
-  //   this.applyFilters();
-  //   this.updateCharts();
-  // }
-
   sortTable(column: string): void {
     if (this.sortedColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -492,24 +615,23 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.sortDirection = 'asc';
     }
 
-    // Create a copy before sorting
     let dataToSort = [...this.activity];
-    
+
     dataToSort = dataToSort.sort((a, b) => {
       const aValue = a[column as keyof ActivityRow];
       const bValue = b[column as keyof ActivityRow];
-      
+
       if (typeof aValue === 'number' && typeof bValue === 'number') {
         return this.sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
       }
-      
+
       const aStr = String(aValue);
       const bStr = String(bValue);
-      return this.sortDirection === 'asc' 
-        ? aStr.localeCompare(bStr) 
+      return this.sortDirection === 'asc'
+        ? aStr.localeCompare(bStr)
         : bStr.localeCompare(aStr);
     });
-    
+
     this.activity = dataToSort;
   }
 
@@ -522,7 +644,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   get totalPages(): number {
     return Math.ceil(this.activity.length / this.itemsPerPage);
   }
-  
+
   get pagesArray(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
@@ -565,5 +687,142 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (bounceRate >= 60) return 'bg-danger-subtle text-danger';
     if (bounceRate >= 40) return 'bg-warning-subtle text-warning';
     return 'bg-success-subtle text-success';
+  }
+
+  // Export functionality
+  openExportModal(): void {
+    this.showExportModal = true;
+  }
+
+  closeExportModal(): void {
+    this.showExportModal = false;
+  }
+
+  exportAsCSV(): void {
+    // Build comprehensive CSV content
+    let csvContent = '';
+
+    // Add title and metadata
+    csvContent += 'Dashboard Report\n';
+    csvContent += `Date Range: ${this.dateRange}\n`;
+    csvContent += '\n';
+
+    // Add summary statistics
+    csvContent += 'Summary Statistics\n';
+    csvContent += `Total Revenue,$${this.getTotalRevenue().toLocaleString()}\n`;
+    csvContent += `Average Active Users,${Math.round(this.getTotalUsers()).toLocaleString()}\n`;
+    csvContent += `Total Sessions,${this.getTotalSessions().toLocaleString()}\n`;
+    csvContent += `Average Session Duration,${this.getAvgSessionDuration()} min\n`;
+    csvContent += '\n';
+
+    // Add User Activity Details
+    csvContent += 'User Activity Details\n';
+    csvContent += 'Date,Active Users,New Users,Sessions\n';
+    this.activity.forEach(row => {
+      csvContent += `${row.date},${row.activeUsers},${row.newUsers},${row.sessions}\n`;
+    });
+    csvContent += '\n';
+
+    // Add Platform Engagement
+    csvContent += 'Platform Engagement\n';
+    csvContent += 'Platform,Page Views,Bounce Rate (%)\n';
+    this.engagement.forEach(row => {
+      csvContent += `${row.platform},${row.pageViews},${row.bounceRate}\n`;
+    });
+    csvContent += '\n';
+
+    // Add Top Products
+    csvContent += 'Top Products\n';
+    csvContent += 'Product,Revenue\n';
+    this.products.forEach(row => {
+      csvContent += `${row.product},$${row.revenue.toLocaleString()}\n`;
+    });
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `dashboard-report-${this.dateRange}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    this.closeExportModal();
+  }
+
+  exportAsPDF(): void {
+    const doc = new jsPDF();
+
+    // Add title
+    doc.setFontSize(18);
+    doc.text('Dashboard Report', 14, 20);
+
+    // Add date range
+    doc.setFontSize(12);
+    doc.text(`Date Range: ${this.dateRange}`, 14, 30);
+
+    // Add summary statistics
+    doc.setFontSize(14);
+    doc.text('Summary Statistics', 14, 45);
+    doc.setFontSize(10);
+    doc.text(`Total Revenue: $${this.getTotalRevenue().toLocaleString()}`, 14, 55);
+    doc.text(`Average Active Users: ${Math.round(this.getTotalUsers()).toLocaleString()}`, 14, 62);
+    doc.text(`Total Sessions: ${this.getTotalSessions().toLocaleString()}`, 14, 69);
+    doc.text(`Average Session Duration: ${this.getAvgSessionDuration()} min`, 14, 76);
+
+    // Add User Activity Table
+    doc.setFontSize(14);
+    doc.text('User Activity Details', 14, 90);
+
+    autoTable(doc, {
+      startY: 95,
+      head: [['Date', 'Active Users', 'New Users', 'Sessions']],
+      body: this.activity.map(row => [
+        row.date,
+        row.activeUsers.toString(),
+        row.newUsers.toString(),
+        row.sessions.toString()
+      ]),
+      theme: 'striped',
+      headStyles: { fillColor: [102, 126, 234] },
+      margin: { top: 95 }
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY || 95;
+    if (finalY > 200) {
+      doc.addPage();
+      doc.setFontSize(14);
+      doc.text('Platform Engagement', 14, 20);
+      autoTable(doc, {
+        startY: 25,
+        head: [['Platform', 'Page Views', 'Bounce Rate (%)']],
+        body: this.engagement.map(row => [
+          row.platform,
+          row.pageViews.toString(),
+          row.bounceRate.toString()
+        ]),
+        theme: 'striped',
+        headStyles: { fillColor: [102, 126, 234] }
+      });
+    } else {
+      doc.setFontSize(14);
+      doc.text('Platform Engagement', 14, finalY + 15);
+      autoTable(doc, {
+        startY: finalY + 20,
+        head: [['Platform', 'Page Views', 'Bounce Rate (%)']],
+        body: this.engagement.map(row => [
+          row.platform,
+          row.pageViews.toString(),
+          row.bounceRate.toString()
+        ]),
+        theme: 'striped',
+        headStyles: { fillColor: [102, 126, 234] }
+      });
+    }
+
+    doc.save(`dashboard-report-${this.dateRange}.pdf`);
+    this.closeExportModal();
   }
 }

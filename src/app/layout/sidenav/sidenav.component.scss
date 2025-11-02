@@ -1,5 +1,6 @@
 nav {
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, opacity 0.3s ease;
   
   &.sidenav-fixed {
     position: fixed;
@@ -9,6 +10,16 @@ nav {
     width: 240px;
     overflow-y: auto;
     z-index: 100;
+    background: white;
+    
+    @media (max-width: 768px) {
+      transform: translateX(-100%);
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+      
+      &.sidenav-open {
+        transform: translateX(0);
+      }
+    }
   }
   
   .nav-link {
@@ -22,6 +33,16 @@ nav {
     
     span:first-child {
       font-size: 1.25rem;
+      
+      @media (max-width: 576px) {
+        font-size: 1.125rem;
+      }
+    }
+    
+    span:last-child {
+      @media (max-width: 576px) {
+        font-size: 0.9375rem;
+      }
     }
     
     &:hover {
@@ -40,4 +61,5 @@ nav {
       }
     }
   }
+  
 }

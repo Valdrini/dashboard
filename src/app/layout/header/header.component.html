@@ -1,4 +1,12 @@
 <header class="navbar navbar-expand bg-light border-bottom px-3">
+  <button 
+    class="btn btn-link d-md-none me-2 p-2" 
+    (click)="onToggleSidebar()"
+    aria-label="Toggle navigation"
+    type="button"
+  >
+    <i class="bi bi-list fs-4"></i>
+  </button>
   <div class="d-flex align-items-center gap-2">
   <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -45,7 +53,7 @@
           <clipPath id="a"><path fill="#fff" d="M0 0h982v239H0z" /></clipPath>
         </defs>
       </svg>
-    <span class="fw-semibold">My Dashboard</span>
+    <span class="fw-semibold"></span>
   </div>
   <div class="ms-auto d-flex align-items-center gap-2">
     <button 
@@ -53,16 +61,19 @@
       [class.btn-outline-primary]="!editMode"
       [class.btn-primary]="editMode"
       (click)="onToggleEditMode()"
+      [attr.aria-label]="editMode ? 'Done Editing' : 'Edit Layout'"
     >
-      <i class="bi" [ngClass]="editMode ? 'bi-x-circle me-2' : 'bi-pencil me-2'"></i>
-      {{ editMode ? 'Done' : 'Edit Layout' }}
+      <i class="bi" [ngClass]="editMode ? 'bi-x-circle' : 'bi-pencil'"></i>
+      <span class="d-none d-md-inline ms-2">{{ editMode ? 'Done' : 'Edit Layout' }}</span>
     </button>
     <button 
       class="btn btn-primary save-layout-btn" 
       (click)="onSaveLayout()"
       [disabled]="!editMode"
+      aria-label="Save Layout"
     >
-      <i class="bi bi-floppy me-2"></i>Save Layout
+      <i class="bi bi-floppy"></i>
+      <span class="d-none d-md-inline ms-2">Save Layout</span>
     </button>
   </div>
 </header>

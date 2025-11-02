@@ -1,36 +1,78 @@
 # Anchorzup Dashboard
 
-A beautiful, modern dashboard application built with Angular 18 and Bootstrap 5.
+A modern, responsive dashboard application built with Angular 18, featuring drag-and-drop widgets, interactive charts, and data export capabilities.
 
 ## Features
 
-- **Modern UI Design**: Clean, professional interface with gradient accents and smooth transitions
-- **Dashboard Overview**: Interactive statistics cards showing key business metrics
-- **Data Visualization**: Comprehensive tables for user activity, engagement, and product performance
-- **Responsive Layout**: Fully responsive design that works on all devices
-- **Sticky Header**: Navigation header stays visible while scrolling
-- **Side Navigation**: Clean sidebar navigation with active state highlighting
+- Draggable and resizable dashboard widgets using GridStack
+- Interactive charts with zoom
+- Export data to CSV or PDF formats
+- Responsive design for mobile, tablet, and desktop
+- Real-time data filtering and sorting
+- Customizable layout with save functionality
 
-## Development server
+## Prerequisites
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Before you begin, make sure you have installed:
 
-## Code scaffolding
+1. **Node.js** (version 18 or higher)
+   - Download from: https://nodejs.org/
+   - This includes npm (Node Package Manager)
+   - To check if installed, open terminal/command prompt and type: `node --version`
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+2. **Angular CLI** (Command Line Interface)
+   - After installing Node.js, open terminal/command prompt
+   - Run: `npm install -g @angular/cli`
+   - This installs Angular CLI globally on your computer
+   - To verify: `ng version`
 
-## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Getting Started
 
-## Running unit tests
+Follow these steps to set up and run the project:
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+### 1. Get the project files
 
-## Running end-to-end tests
+**Option A - Using Git:**
+```bash
+git clone <your-repository-url>
+cd dashboard
+```
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+**Option B - Without Git:**
+- Download the ZIP file from GitHub
+- Extract it to a folder
+- Open terminal/command prompt in that folder
 
-## Further help
+### 2. Install Angular CLI (if you haven't already)
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```bash
+npm install -g @angular/cli
+```
+
+This is a one-time installation. Skip if already installed.
+
+### 3. Install project dependencies
+
+```bash
+npm install
+```
+
+This installs all required packages:
+-Bootstrap 5 (npm install bootstrap)
+-Chart.js and chartjs-plugin-zoom (npm install chart.js chartjs-plugin-zoom)
+-GridStack (npm install gridstack)
+-jsPDF and jspdf-autotable (npm install jspdf jspdf-autotable)
+
+### 4. Run the development server
+
+```bash
+npm start
+```
+
+Or alternatively:
+
+```bash
+ng serve
+```
+
